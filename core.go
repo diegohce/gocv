@@ -3,10 +3,14 @@ package gocv
 /*
 #include <stdlib.h>
 #include "core.h"
+
+void gocv_exception_handler(char*, char*);
+int cb_gocv_exception_handler(int status, const char *func_name, const char *err_msg, const char *file_name, int line, void *userdata);
 */
 import "C"
 import (
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"reflect"
@@ -2931,4 +2935,38 @@ func NewRotatedRect2f(center Point2f, width float32, height float32, angle float
 		Height:       float32(c_rotRect2f.size.height),
 		Angle:        float64(c_rotRect2f.angle),
 	}
+}
+
+//export gocv_exception_handler
+func gocv_exception_handler(fnName *C.char, msg *C.char) {
+	err_msg := fmt.Sprintf("%s: %s", C.GoString(fnName), C.GoString(msg))
+	panic(err_msg)
+}
+
+func InitErrorHandler() {
+	C.gocv_set_ErrorCallback(C.ErrorCallback(C.cb_gocv_exception_handler))
+}
+
+func SafeWithErr(fn func() error) (err error) {
+	defer func() {
+		if p := recover(); p != nil {
+			err = errors.New(p.(string))
+		}
+	}()
+
+	err = fn()
+
+	return err
+}
+
+func Safe(fn func()) (err error) {
+	defer func() {
+		if p := recover(); p != nil {
+			err = errors.New(p.(string))
+		}
+	}()
+
+	fn()
+
+	return err
 }

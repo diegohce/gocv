@@ -1289,3 +1289,7 @@ struct RotatedRect2f RotatedRect2f_Create(struct Point2f center, float width, fl
     RotatedRect2f retrect = {(Contour2f){rpts, 4}, r, centrpt, szsz, cvrect.angle};
     return retrect;
 }
+
+void gocv_set_ErrorCallback(ErrorCallback fn) {
+    cv::redirectError(fn);
+}

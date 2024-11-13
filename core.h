@@ -262,6 +262,7 @@ typedef std::vector< std::vector< cv::Point2f> >* Points2fVector;
 typedef std::vector< cv::Point3f >* Point3fVector;
 typedef std::vector< std::vector< cv::Point3f > >* Points3fVector;
 typedef cv::RotatedRect* RotatedRectT;
+typedef cv::ErrorCallback ErrorCallback;
 #else
 typedef void* Mat;
 typedef void* TermCriteria;
@@ -273,6 +274,7 @@ typedef void* Points2fVector;
 typedef void* Point3fVector;
 typedef void* Points3fVector;
 typedef void* RotatedRectT;
+typedef int (*ErrorCallback)(int status, const char *func_name, const char *err_msg, const char *file_name, int line, void *userdata);
 #endif
 
 // Wrapper for the vector of Mat aka std::vector<Mat>
@@ -561,6 +563,7 @@ int GetNumThreads();
 struct RotatedRect RotatedRect_Create(struct Point2f center, int width, int height, float angle);
 struct RotatedRect2f RotatedRect2f_Create(struct Point2f center, float width, float height, float angle);
 
+void gocv_set_ErrorCallback(ErrorCallback fn);
 
 #ifdef __cplusplus
 }
