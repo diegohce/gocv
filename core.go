@@ -14,6 +14,7 @@ import (
 	"image"
 	"image/color"
 	"reflect"
+	"sync"
 	"unsafe"
 )
 
@@ -2943,11 +2944,24 @@ func gocv_exception_handler(fnName *C.char, msg *C.char) {
 	panic(err_msg)
 }
 
-func InitErrorHandler() {
+var initErrorHandlerOnce = sync.Once{}
+
+func initErrorHandler() {
 	C.gocv_set_ErrorCallback(C.ErrorCallback(C.cb_gocv_exception_handler))
 }
 
+// SafeWithErr calls the function fn and turns c++ exceptions into Go error(s).
+// This variation lets function fn to return an error.
+//
+// If an exception is thrown SafeWithErr will return the exception as error.
+//
+// If fn return with error, SafeWithErr will return that error.
 func SafeWithErr(fn func() error) (err error) {
+
+	initErrorHandlerOnce.Do(func() {
+		initErrorHandler()
+	})
+
 	defer func() {
 		if p := recover(); p != nil {
 			err = errors.New(p.(string))
@@ -2959,7 +2973,13 @@ func SafeWithErr(fn func() error) (err error) {
 	return err
 }
 
+// Safe calls the function fn and turns c++ exception into Go error
 func Safe(fn func()) (err error) {
+
+	initErrorHandlerOnce.Do(func() {
+		initErrorHandler()
+	})
+
 	defer func() {
 		if p := recover(); p != nil {
 			err = errors.New(p.(string))
